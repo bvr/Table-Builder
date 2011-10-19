@@ -2,24 +2,25 @@
 use Table::Builder;
 use Number::Format qw(format_number format_bytes);
 
-my $t = Table::Builder->new_with_columns(
-    Item => {
-        isa   => 'Str',
-        align => 'left',
-        group => 1,     # or
-        # group => sub { my ($prev, $self) = @_; return $self->Item eq $prev->Item },
-        group_summary => 1,
-    },
-    Count => {
-        isa    => 'Num',
-        hidden => 1,
-    },
-    Power => {
-        isa       => 'Num',
-        default   => sub { shift->Count**2 },
-        formatter => sub { format_number(shift->Power) },
-        align     => 'right',
-    },
+my $t = Table::Builder->new(
+    cols => [
+        Item => {
+            isa   => 'Str',
+            align => 'left',
+            group => 1,     # or
+        },
+        Count => {
+            isa    => 'Num',
+            hidden => 1,
+        },
+        Power => {
+            isa       => 'Num',
+            default   => sub { shift->Count**2 },
+            formatter => sub { format_number(shift->Power) },
+            align     => 'right',
+        },
+    ],
+    group_by => [ 'Item' ],
 );
 
 $t->add_row('Thing', 2);
@@ -47,7 +48,7 @@ Hidden columns for some data
 =head2 Implementation
 
 Row as a Moose class
-Table::Creator as storage for items. Those can be:
+Table::Builder as storage for items. Those can be:
  - a row object
  - a separator object
  - summary row object
