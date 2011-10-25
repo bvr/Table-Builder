@@ -14,5 +14,8 @@ $table->add_summary_row('Total', sub { sum(map { $_->Count } @_) });
 
 $table->render_as('ascii');
 
+dd $table->rows;
+
 done_testing;
+
 
