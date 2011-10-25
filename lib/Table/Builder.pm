@@ -15,7 +15,7 @@ has cols => (
     coerce => 1,
 );
 
-sub column_names {
+sub col_names {
     my ($self) = @_;
 
     return map { $_->name } @{ $self->cols };
@@ -35,7 +35,9 @@ sub _build_row_class {
         cache        => 1,
     );
     for my $col (@{ $self->cols }) {
-        $metaclass->add_attribute($col->name => ( is => 'rw' ));
+        $metaclass->add_attribute(
+            $col->name => ( is => 'rw' )
+        );
     }
 
     return $metaclass;
@@ -79,25 +81,41 @@ sub add_row {
     my $row = $self->row_class->new_object($data);
     $self->_add_row($row);
 
-    $self;  # allow chaining
+    return $self;  # allow chaining
 }
 
 sub add_summary_row {
     my ($self, @items) = @_;
 
-    $self;  # allow chaining
+    return $self;  # allow chaining
 }
+
+=method add_sep
+
+    $table->add_sep;
+    $table->add_sep(double => 1);
+
+Adds a separator row into table.
+
+=cut
 
 sub add_sep {
     my ($self, %opt) = @_;
 
-    $self;  # allow chaining
+    $self->_add_row(Table::Builder::Separator->new(%opt));
+
+    return $self;  # allow chaining
 }
 
 sub render_as {
     my ($self, $format, @opt) = @_;
 
-    $self;  # allow chaining
+    my $out_class_name = 'Table::Builder::Output::' . $format;
+    Class::MOP::load_class($out_class_name);
+
+    $out_class_name->new(@opt)->render($self);
+
+    return $self;  # allow chaining
 }
 
 1;

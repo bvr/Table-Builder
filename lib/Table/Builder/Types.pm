@@ -9,7 +9,10 @@ use MooseX::Types -declare => [
 ];
 
 use MooseX::Types::Moose qw(Str ArrayRef);
+
 use Table::Builder::Column;
+use Table::Builder::Row;
+use Table::Builder::Separator;
 
 class_type 'Table::Builder::Column';
 
