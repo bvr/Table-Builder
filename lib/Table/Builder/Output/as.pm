@@ -9,17 +9,24 @@ sub render {
     my ($self, $builder) = @_;
 
     my $table = ActiveState::Table->new;
-    $table->add_field($_) for $builder->col_names;
+    my @columns = $builder->visible_col_names;
 
-    for my $row (@{ $builder->rows }) {
+    $table->add_field($_) for @columns;
+
+    for my $row ($builder->rows) {
         if($row->isa('Table::Builder::Separator')) {
             $table->add_sep;
         }
         else {
-            $table->add_row({ %$row });
+            my %items = ();
+            @items{@columns} = map { $row->$_() } @columns;
+
+            $table->add_row({ %items });
         }
     }
-    $table->as_box(show_trailer => 0, box_chars=>'unicode');
+
+    my %align = map { $_->name => $_->align } $builder->visible_cols;
+    $table->as_box(show_trailer => 0, align => { %align }, box_chars=>'unicode');
 }
 
 

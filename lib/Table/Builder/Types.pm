@@ -1,10 +1,12 @@
 
 package Table::Builder::Types;
+use strict;
 
 use MooseX::Types -declare => [
     qw(
         ArrayOfStr
         ArrayRefOfCols
+        Align
     )
 ];
 
@@ -16,11 +18,23 @@ use Table::Builder::Separator;
 
 class_type 'Table::Builder::Column';
 
-subtype ArrayOfStr,     as ArrayRef[Str];
 subtype ArrayRefOfCols, as ArrayRef['Table::Builder::Column'];
 
-coerce ArrayRefOfCols, from ArrayOfStr, via {
-    [ map { Table::Builder::Column->new(name => $_) } @$_ ];
+subtype Align, as enum([qw(left right center justify)]);
+
+coerce ArrayRefOfCols, from ArrayRef, via {
+    my @input = @$_;
+    my @cols  = ();
+
+    while(my $col_name = shift @input) {
+        my %params = ();
+        if(ref $input[0] eq 'HASH') {
+            %params = %{ shift @input };
+        }
+        push @cols, Table::Builder::Column->new(name => $col_name, %params);
+    }
+
+    return [ @cols ];
 };
 
 1;

@@ -5,7 +5,8 @@ use Data::Dump;
 use Table::Builder;
 use List::Util qw(sum);
 
-my $table = Table::Builder->new(cols => [qw(Item Count)]);
+my $table =
+    Table::Builder->new(cols => ['Item', 'Count' => {align => 'right'}]);
 $table
     ->add_row("Roman", 10)
     ->add_row('Mirek', 12)

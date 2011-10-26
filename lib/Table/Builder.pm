@@ -9,22 +9,31 @@ use Table::Builder::Types qw(ArrayRefOfCols);
 
 =cut
 
-has cols => (
-    is     => 'ro',
-    isa    => ArrayRefOfCols,
-    coerce => 1,
+has _cols => (
+    is       => 'ro',
+    traits   => ['Array'],
+    isa      => ArrayRefOfCols,
+    coerce   => 1,
+    required => 1,
+    init_arg => 'cols',
+    handles  => {cols => 'elements'},
 );
 
-sub col_names {
+sub visible_cols {
     my ($self) = @_;
-
-    return map { $_->name } @{ $self->cols };
+    return grep { ! $_->hidden } $self->cols;
 }
 
-has row_class => (
-    is         => 'ro',
-    isa        => 'Moose::Meta::Class',
-    lazy_build => 1,
+sub visible_col_names {
+    my ($self) = @_;
+    return map { $_->name } grep { ! $_->hidden } $self->cols;
+}
+
+has _row_class => (
+    is      => 'ro',
+    isa     => 'Moose::Meta::Class',
+    lazy    => 1,
+    builder => '_build_row_class',
 );
 
 sub _build_row_class {
@@ -34,9 +43,10 @@ sub _build_row_class {
         superclasses => ['Table::Builder::Row'],
         cache        => 1,
     );
-    for my $col (@{ $self->cols }) {
+    for my $col ($self->cols) {
         $metaclass->add_attribute(
             $col->name => ( is => 'rw' )
+            # TODO: more attributes from cols settings (isa, default, etc)
         );
     }
 
@@ -49,13 +59,14 @@ Array of rows in the table.
 
 =cut
 
-has rows => (
-    traits  => ['Array'],
-    is      => 'rw',
-    isa     => 'ArrayRef[Table::Builder::Row]',
-    handles => {
-        list_rows => 'elements',
-        _add_row  => 'push',
+has _rows => (
+    traits   => ['Array'],
+    isa      => 'ArrayRef[Table::Builder::Row]',
+    init_arg => 'rows',
+    default  => sub { [] },
+    handles  => {
+        rows     => 'elements',
+        _add_row => 'push',
     },
 );
 
@@ -76,9 +87,9 @@ sub add_row {
     # support either hashref or list of items
     my $data = @items == 1 && ref($items[0]) eq "HASH"
         ? $items[0]
-        : { map { $self->cols->[$_]->name => $items[$_] } 0 .. $#items };
+        : { map { $self->_cols->[$_]->name => $items[$_] } 0 .. $#items };
 
-    my $row = $self->row_class->new_object($data);
+    my $row = $self->_row_class->new_object($data);
     $self->_add_row($row);
 
     return $self;  # allow chaining
@@ -86,6 +97,8 @@ sub add_row {
 
 sub add_summary_row {
     my ($self, @items) = @_;
+
+    # TODO: construct summary row class
 
     return $self;  # allow chaining
 }
