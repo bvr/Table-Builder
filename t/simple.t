@@ -12,13 +12,15 @@ $table
     ->add_row('Mirek', 12)
     ->add_row('Josef', 15)
     ->add_sep
-    ->add_row('Jim', 99);
+    ->add_row('Jim', 99)
+    ->add_sep
+    ;
 $table->add_summary_row('Total', sub { sum(@_) });
 
 binmode(STDOUT, ':utf8');
 $table->render_as('as');
 
-dd $table->rows;
+# dd $table->rows;
 
 done_testing;
 

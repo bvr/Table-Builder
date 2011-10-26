@@ -61,7 +61,7 @@ Array of rows in the table.
 
 has _rows => (
     traits   => ['Array'],
-    isa      => 'ArrayRef[Table::Builder::Row]',
+    isa      => 'ArrayRef',
     init_arg => 'rows',
     default  => sub { [] },
     handles  => {
@@ -84,21 +84,55 @@ Adds a new row into table.
 sub add_row {
     my ($self, @items) = @_;
 
-    # support either hashref or list of items
-    my $data = @items == 1 && ref($items[0]) eq "HASH"
-        ? $items[0]
-        : { map { $self->_cols->[$_]->name => $items[$_] } 0 .. $#items };
-
-    my $row = $self->_row_class->new_object($data);
+    my $data = $self->_normalize_row(@items);
+    my $row  = $self->_row_class->new_object($data);
     $self->_add_row($row);
 
     return $self;  # allow chaining
 }
 
+# support either hashref or list of items
+sub _normalize_row {
+    my ($self, @items) = @_;
+
+    return $items[0] if @items == 1 && ref($items[0]) eq "HASH";
+    return { map { $self->_cols->[$_]->name => $items[$_] } 0 .. $#items };
+}
+
+=method add_summary_row
+
+    $table->add_summary_row('Apples', sub { sum(@_) }, 20);
+    $table->add_summary_row({ Item => 'Apples', Amount => sub { sum(@_) }, Tax => 20 });
+
+Adds a new row into table.
+
+=cut
+
 sub add_summary_row {
     my ($self, @items) = @_;
 
-    # TODO: construct summary row class
+    my $metaclass = Moose::Meta::Class->create_anon_class(
+        superclasses => [ 'Table::Builder::SummaryRow' ],
+        cache        => 1,
+    );
+    $metaclass->add_method(parent => sub { $self });
+
+    my $data = $self->_normalize_row(@items);
+
+    for my $key (keys %$data) {
+        my $item = $data->{$key};
+        my $meth = ref $item ne 'CODE'
+            ? sub { $item }
+            : sub {
+                $item->(
+                    map  { $_->$key() }
+                    grep { $_->isa('Table::Builder::Row') }
+                    $self->rows
+                )
+            };
+        $metaclass->add_method($key => $meth);
+    }
+    $self->_add_row($metaclass->new_object());
 
     return $self;  # allow chaining
 }
