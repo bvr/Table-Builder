@@ -2,11 +2,12 @@
 package Table::Builder::Output::as;
 # ABSTRACT: output a table using ActiveState::Table
 use Moose;
+extends 'Table::Builder::Output';
 
 use ActiveState::Table;
 
-sub render {
-    my ($self, $builder) = @_;
+sub render_data {
+    my ($self, $builder, $fh) = @_;
 
     my $table = ActiveState::Table->new;
     my @columns = $builder->visible_col_names;
@@ -26,9 +27,12 @@ sub render {
     }
 
     my %align = map { $_->name => $_->align } $builder->visible_cols;
-    $table->as_box(show_trailer => 0, align => { %align }, box_chars=>'unicode');
+    print {$fh} $table->as_box(
+        show_trailer => 0,
+        align        => {%align},
+        box_chars    => 'unicode'
+    );
 }
-
 
 __PACKAGE__->meta->make_immutable();
 

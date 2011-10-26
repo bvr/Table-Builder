@@ -17,10 +17,15 @@ $table
     ;
 $table->add_summary_row('Total', sub { sum(@_) });
 
-binmode(STDOUT, ':utf8');
-$table->render_as('as');
-
-# dd $table->rows;
+is $table->render_as('csv'),
+"Item,Count
+Roman,10
+Mirek,12
+Josef,15
+Jim,99
+Total,136
+"
+    => 'Expected output of CSV';
 
 done_testing;
 

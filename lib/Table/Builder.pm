@@ -3,6 +3,8 @@ package Table::Builder;
 
 use Moose;
 use Table::Builder::Types qw(ArrayRefOfCols);
+use Try::Tiny;
+use Carp;
 
 =head1 SYNOPSIS
 
@@ -154,15 +156,52 @@ sub add_sep {
     return $self;  # allow chaining
 }
 
+=method render_as
+
+    my $output = $table->render_as('ascii');
+    $table->render_as('ascii', file => 'filename.txt');
+    $table->render_as('ascii', file => $open_filehandle);
+
+Renders table into string or file using specified output formatting class.
+
+=cut
+
 sub render_as {
-    my ($self, $format, @opt) = @_;
+    my ($self, $format, %opt) = @_;
 
-    my $out_class_name = 'Table::Builder::Output::' . $format;
-    Class::MOP::load_class($out_class_name);
+    # try to load appropriate class and create renderer
+    my $out_class_name;
+    try {
+        $out_class_name = 'Table::Builder::Output::' . $format;
+        Class::MOP::load_class($out_class_name);
+    }
+    catch {
+        warn $_;
+        try {
+            $out_class_name = $format;
+            Class::MOP::load_class($out_class_name);
+        }
+        catch {
+            croak "The format \"$format\" was not found";
+        };
+    };
 
-    $out_class_name->new(@opt)->render($self);
+    # is there an option to specify the output file
+    my $output_file = delete $opt{file};
 
-    return $self;  # allow chaining
+    my $renderer = $out_class_name->new(%opt);
+
+    # output as a string
+    if(defined wantarray && ! defined $output_file) {
+        return $renderer->render_string($self);
+    }
+
+    croak "The output file was not specified for format \"$format\""
+        unless defined $output_file;
+
+    # output into file(handle)
+    $renderer->render_file($self, $output_file);
+    return $self;
 }
 
 1;
