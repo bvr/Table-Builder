@@ -51,8 +51,7 @@ sub _build_row_class {
         }
         else {
             $metaclass->add_attribute(
-                $col->name => ( is => 'rw' )
-                # TODO: more attributes from cols settings (isa, default, etc)
+                $col->name => ( is => 'rw', %{ $col->_other_options } ),
             );
         }
     }
