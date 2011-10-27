@@ -9,7 +9,14 @@ has align  => (is => 'ro', isa => enum([qw(left right center justify)]), default
 has hidden => (is => 'ro', isa => Bool, default => 0);
 has label  => (is => 'ro', lazy => 1, default => sub { shift->name });
 
-has inferred => (is => 'ro', isa => CodeRef, predicate => 'has_inferred');
+has formatter => (is => 'ro', isa => CodeRef, predicate => 'has_formatter');
+has inferred  => (is => 'ro', isa => CodeRef, predicate => 'has_inferred');
+
+sub format {
+    my ($self, $data) = @_;
+    local $_ = $data;
+    return $self->formatter->();
+}
 
 __PACKAGE__->meta->make_immutable();
 

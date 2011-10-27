@@ -6,6 +6,8 @@ extends 'Table::Builder::Output';
 
 use ActiveState::Table;
 
+has box_chars => (is => 'ro', default => 'unicode');
+
 sub render_data {
     my ($self, $builder, $fh) = @_;
 
@@ -20,7 +22,13 @@ sub render_data {
         }
         else {
             my %items = ();
-            @items{@columns} = map { my $acc = $_->name; $row->$acc() } $builder->visible_cols;
+            @items{@columns} = map {
+                my $acc  = $_->name;
+                my $data = $row->$acc();
+                $data = $_->format($data)
+                    if $_->has_formatter;
+                $data
+            } $builder->visible_cols;
 
             $table->add_row({ %items });
         }
@@ -30,7 +38,7 @@ sub render_data {
     print {$fh} $table->as_box(
         show_trailer => 0,
         align        => {%align},
-        box_chars    => 'unicode'
+        box_chars    => $self->box_chars
     );
 }
 
