@@ -1,6 +1,5 @@
 
 use Test::More;
-use Data::Dump;
 
 use Table::Builder;
 use List::Util qw(sum);
@@ -24,8 +23,7 @@ Mirek,12
 Josef,15
 Jim,99
 Total,136
-"
-    => 'Expected output of CSV';
+", 'Expected output of CSV';
 
 done_testing;
 

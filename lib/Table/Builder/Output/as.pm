@@ -10,7 +10,7 @@ sub render_data {
     my ($self, $builder, $fh) = @_;
 
     my $table = ActiveState::Table->new;
-    my @columns = $builder->visible_col_names;
+    my @columns = map { $_->label } $builder->visible_cols;
 
     $table->add_field($_) for @columns;
 
@@ -20,13 +20,13 @@ sub render_data {
         }
         else {
             my %items = ();
-            @items{@columns} = map { $row->$_() } @columns;
+            @items{@columns} = map { my $acc = $_->name; $row->$acc() } $builder->visible_cols;
 
             $table->add_row({ %items });
         }
     }
 
-    my %align = map { $_->name => $_->align } $builder->visible_cols;
+    my %align = map { $_->label => $_->align } $builder->visible_cols;
     print {$fh} $table->as_box(
         show_trailer => 0,
         align        => {%align},

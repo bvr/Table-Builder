@@ -11,10 +11,9 @@ sub render_data {
 
     my $csv = Text::CSV_XS->new ({ binary => 1, eol => $/ });
 
+    $csv->print ($fh, [map { $_->label } $builder->visible_cols ]);
+
     my @columns = $builder->visible_col_names;
-
-    $csv->print ($fh, [@columns]);
-
     for my $row ($builder->rows) {
         next if $row->isa('Table::Builder::Separator');
 

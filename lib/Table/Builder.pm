@@ -46,10 +46,15 @@ sub _build_row_class {
         cache        => 1,
     );
     for my $col ($self->cols) {
-        $metaclass->add_attribute(
-            $col->name => ( is => 'rw' )
-            # TODO: more attributes from cols settings (isa, default, etc)
-        );
+        if($col->has_inferred) {
+            $metaclass->add_method($col->name => sub { $col->inferred->(@_) });
+        }
+        else {
+            $metaclass->add_attribute(
+                $col->name => ( is => 'rw' )
+                # TODO: more attributes from cols settings (isa, default, etc)
+            );
+        }
     }
 
     return $metaclass;
@@ -114,8 +119,7 @@ sub add_summary_row {
     my ($self, @items) = @_;
 
     my $metaclass = Moose::Meta::Class->create_anon_class(
-        superclasses => [ 'Table::Builder::SummaryRow' ],
-        cache        => 1,
+        superclasses => [ 'Table::Builder::SummaryRow' ]
     );
     $metaclass->add_method(parent => sub { $self });
 
