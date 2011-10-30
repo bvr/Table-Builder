@@ -1,5 +1,5 @@
 package Table::Builder;
-# ABSTRACT: Generic way to build a table and output it in various formats
+# ABSTRACT: Build a table and output it in various formats
 
 use Moose;
 use Table::Builder::Types qw(ArrayRefOfCols);
@@ -8,6 +8,25 @@ use Carp;
 
 =head1 SYNOPSIS
 
+    use Table::Builder;
+
+    my $table = Table::Builder->new(cols => ['Item', 'Value']);
+    $table->add('Apples',  20);
+    $table->add('Oranges', 25);
+    $table->add('Lemons',   5);
+    print $table->render_as('csv');
+
+=head1 DESCRIPTION
+
+What is it?
+
+Rationale ... why?
+
+Concept ... how it works?
+
+=attr cols
+
+Arrayref of columns specified.
 
 =cut
 
@@ -28,7 +47,7 @@ sub visible_cols {
 
 sub visible_col_names {
     my ($self) = @_;
-    return map { $_->name } grep { ! $_->hidden } $self->cols;
+    return map { $_->name } $self->visible_cols;
 }
 
 has _row_class => (
@@ -85,6 +104,9 @@ __PACKAGE__->meta->make_immutable();
 
 Adds a new row into table.
 
+Two forms are supported, either just values for each column or data passed
+as named arguments.
+
 =cut
 
 sub add_row {
@@ -110,7 +132,13 @@ sub _normalize_row {
     $table->add_summary_row('Apples', sub { sum(@_) }, 20);
     $table->add_summary_row({ Item => 'Apples', Amount => sub { sum(@_) }, Tax => 20 });
 
-Adds a new row into table.
+Adds a new summary (calculated) row into table.
+
+Two forms are supported, either just values for each column or data passed
+as named arguments.
+
+The parameters supplied to the callback are values of given columns for
+all normal rows.
 
 =cut
 
@@ -162,10 +190,21 @@ sub add_sep {
 =method render_as
 
     my $output = $table->render_as('ascii');
+    my $output = $table->render_as('ascii', %options);
     $table->render_as('ascii', file => 'filename.txt');
     $table->render_as('ascii', file => $open_filehandle);
+    $table->render_as('ascii', file => $open_filehandle, %options);
 
 Renders table into string or file using specified output formatting class.
+By default it looks for classes in B<Table::Builder::Output> namespace. It allows
+also fully specified formatter class.
+
+Without any options, the output is just returned as a string from the call.
+With B<file> option specified, the output is written into supplied filename or
+filehandle.
+
+All other options are passed directly to formatter class and may affect way
+the output is rendered.
 
 =cut
 

@@ -11,6 +11,7 @@ has box_chars => (is => 'ro', default => 'unicode');
 sub render_data {
     my ($self, $builder, $fh) = @_;
 
+    binmode($fh, ':utf8');
     my $table = ActiveState::Table->new;
     my @columns = map { $_->label } $builder->visible_cols;
 
