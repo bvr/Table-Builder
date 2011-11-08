@@ -6,6 +6,8 @@ use Table::Builder::Types qw(ArrayRefOfCols);
 use Try::Tiny;
 use Carp;
 
+$Carp::Internal{ (__PACKAGE__) }++;
+
 =head1 SYNOPSIS
 
     use Table::Builder;
@@ -218,13 +220,17 @@ sub render_as {
         Class::MOP::load_class($out_class_name);
     }
     catch {
-        warn $_;
+
+        croak $_ unless /^Can't locate /;
+
+        # try to load as full namespace
         try {
             $out_class_name = $format;
             Class::MOP::load_class($out_class_name);
         }
         catch {
-            croak "The format \"$format\" was not found";
+            croak $_ unless /^Can't locate /;               # error in module
+            croak "The format \"$format\" was not found";   # not found
         };
     };
 

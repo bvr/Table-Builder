@@ -6,8 +6,8 @@ use List::Util qw(min max);
 
 my $table = Table::Builder->new(cols => [
     'Constant',
-    'd8' => { label => '-8', align => 'right' },
-    'd9' => { label => '-9', align => 'right' },
+    'd8'   => { label => '-8', align => 'right' },
+    'd9'   => { label => '-9', align => 'right' },
     'Diff' => {
         align    => 'right',
         inferred => sub { my $self = shift; abs($self->d9 - $self->d8) },
