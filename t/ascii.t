@@ -14,12 +14,14 @@ my $tb = Table::Builder->new(cols => [
 ]);
 
 $tb->add_row("Walk\nHome", 10, 45, 1);
-$tb->add_sep(double => 1);
+$tb->add_sep();
 $tb->add_row("Walk\nHome", 10, 45, 5);
 
 # p $ao->expand($tb);
 
 print $tb->render_as('ascii');
+print $tb->render_as('unicode');
+print $tb->render_as('double');
 
 
 done_testing;

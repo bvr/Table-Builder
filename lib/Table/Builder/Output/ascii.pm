@@ -9,22 +9,13 @@ use List::Util      qw(max);
 use List::MoreUtils qw(part);
 
 has header    => (is => 'ro', default => 1);
-# has box_chars => (is => 'ro', default => sub { _matricize(<<'---') });
-#     .-+.
-#     | ||
-#     +=++
-#     +-++
-#     '-+'
-# ---
-
-# TODO: rather list of options
-has box_chars => (is => 'ro', default => sub { _matricize(<<'---') });
-    ┌─┬┐
-    │ ││
-    ╞═╪╡
-    ├─┼┤
-    └─┴┘
----
+has box_chars => (is => 'ro', default => sub { [
+    [ ".-", "-", "-+-", "-.\n" ],
+    [ "| ", "|", " | ", " |\n" ],
+    [ "+=", "=", "=+=", "=+\n" ],
+    [ "+-", "-", "-+-", "-+\n" ],
+    [ "'-", "-", "-+-", "-'\n" ],
+] });
 
 __PACKAGE__->meta->make_immutable();
 
@@ -82,15 +73,13 @@ sub _print_boxed_line {
     print {$fh}
         $self->box_chars->[$type][0],
         join($self->box_chars->[$type][2], @items),
-        $self->box_chars->[$type][3],
-        "\n";
+        $self->box_chars->[$type][3];
 }
+
+sub _header_sep { 3 }
 
 sub render_data {
     my ($self, $builder, $fh) = @_;
-
-    # TODO: should be only for unicode boxes
-    binmode($fh, ':utf8');
 
     my $expanded_rows = $self->expand($builder);
 
@@ -106,7 +95,8 @@ sub render_data {
     }
 
     # top delimiter line
-    $self->_print_boxed_line($fh, 0, map { $self->box_chars->[0][1] x ($_+2) } @max_width);
+    $self->_print_boxed_line($fh, 0,
+        map { $self->box_chars->[0][1] x $_ } @max_width);
 
     for my $er (@$expanded_rows) {
         my ($row, @part_lines) = @$er;
@@ -114,24 +104,24 @@ sub render_data {
         # normal row
         for my $pl (@part_lines) {
             # TODO: alignment
-            $self->_print_boxed_line($fh, 1, map { sprintf " %-*s ", $max_width[$_], $pl->[$_] } 0..$#max_width);
+            $self->_print_boxed_line($fh, 1,
+                map { sprintf "%-*s", $max_width[$_], $pl->[$_] } 0..$#max_width);
         }
 
         # separators or line after header
-        if($row->isa('Table::Builder::Separator') || $row->isa('Table::Builder')) {
-            my $box_type = $row->can('double') ? ($row->double ? 2 : 3) : 3;
-            $self->_print_boxed_line($fh, $box_type, map { $self->box_chars->[$box_type][1] x ($_+2) } @max_width);
+        my $sep = 0;
+        $sep = $self->_header_sep    if $row->isa('Table::Builder');
+        $sep = $row->double ? 2 : 3  if $row->isa('Table::Builder::Separator');
+
+        if($sep) {
+            $self->_print_boxed_line($fh, $sep,
+                map { $self->box_chars->[$sep][1] x $_ } @max_width);
         }
     }
 
     # bottom delimiter line
-    $self->_print_boxed_line($fh, 4, map { $self->box_chars->[4][1] x ($_+2) } @max_width);
-}
-
-# convert lines and characters in a string to 2D arrayref
-sub _matricize {
-    my $block = shift;
-    [ map { s/\A\s+//; s/\s+\z//; [ split // ] } split /\n/, $block ];
+    $self->_print_boxed_line($fh, 4,
+        map { $self->box_chars->[4][1] x $_ } @max_width);
 }
 
 1;
