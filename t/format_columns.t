@@ -34,8 +34,8 @@ $table
     ->add_summary_row('Total', sub { sum @_  });
 
 my $expected = <<END;
-+-----------+---------+
-| File      | Size    |
+.-----------+---------.
+| File      |    Size |
 +-----------+---------+
 | resul.zp  |   2.11M |
 | sfbot.fs  |  20.13M |
@@ -45,10 +45,10 @@ my $expected = <<END;
 | time.log  |  10.00  |
 +-----------+---------+
 | Total     |  22.86M |
-+-----------+---------+
+'-----------+---------'
 END
 
-is $table->render_as('as', box_chars => 'ascii'), $expected, 'correctly printed table';
+is $table->render_as('ascii'), $expected, 'correctly printed table';
 
 done_testing;
 

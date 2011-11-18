@@ -1,5 +1,6 @@
 
 package Table::Builder::Output::double;
+# ABSTRACT: output a table using unicode double box characters
 use Moose;
 use utf8;
 

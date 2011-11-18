@@ -4,12 +4,16 @@ package Table::Builder::Output::as;
 use Moose;
 extends 'Table::Builder::Output';
 
-use ActiveState::Table;
+eval { require ActiveState::Table };
+my $HAS_AS_TABLE = $@ ? 0 : 1;
 
 has box_chars => (is => 'ro', default => 'unicode');
 
 sub render_data {
     my ($self, $builder, $fh) = @_;
+
+    die "ActiveState::Table has to be installed"
+        unless $HAS_AS_TABLE;
 
     binmode($fh, ':utf8');
     my $table = ActiveState::Table->new;

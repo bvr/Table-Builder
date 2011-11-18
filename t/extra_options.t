@@ -16,14 +16,14 @@ ok exception {
 }, 'dies with validation';
 
 my $expected = <<END;
-+----------------+------------+---------+
+.----------------+------------+---------.
 | Class          | SuperClass | Methods |
 +----------------+------------+---------+
 | Table::Builder |    ---     |       5 |
-+----------------+------------+---------+
+'----------------+------------+---------'
 END
 
-is $table->render_as('as', box_chars => 'ascii'), $expected, 'correctly printed table';
+is $table->render_as('ascii'), $expected, 'correctly printed table';
 
 done_testing;
 

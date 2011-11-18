@@ -1,5 +1,6 @@
 
 package Table::Builder::Output::unicode;
+# ABSTRACT: output a table using unicode box characters
 use Moose;
 use utf8;
 
