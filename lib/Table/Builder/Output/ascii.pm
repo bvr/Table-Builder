@@ -76,7 +76,27 @@ sub _print_boxed_line {
         $self->box_chars->[$type][3];
 }
 
+# which row in box_chars is header separator
 sub _header_sep { 3 }
+
+sub _format {
+    my ($self, %params) = @_;
+    $params{align} ||= 'left';
+    die "_format: 'text' and 'width' parameters have to be specified"
+        unless defined $params{text} && defined $params{width};
+
+    my $fill_length = $params{width} - length($params{text});
+    return $params{text} . (' ' x $fill_length)
+        if $params{align} eq 'left';
+    return (' ' x $fill_length) . $params{text}
+        if $params{align} eq 'right';
+
+    my $half = int($fill_length / 2);
+    return (' ' x $half) . $params{text} . (' ' x ($fill_length - $half))
+        if $params{align} eq 'center';
+
+    return '';
+}
 
 sub render_data {
     my ($self, $builder, $fh) = @_;
@@ -94,6 +114,9 @@ sub render_data {
         }
     }
 
+    # get alignment
+    my @align = map { $_->align } $builder->visible_cols;
+
     # top delimiter line
     $self->_print_boxed_line($fh, 0,
         map { $self->box_chars->[0][1] x $_ } @max_width);
@@ -103,9 +126,16 @@ sub render_data {
 
         # normal row
         for my $pl (@part_lines) {
-            # TODO: alignment
-            $self->_print_boxed_line($fh, 1,
-                map { sprintf "%-*s", $max_width[$_], $pl->[$_] } 0..$#max_width);
+            $self->_print_boxed_line(
+                $fh, 1,
+                map {
+                    $self->_format(
+                        text  => $pl->[$_],
+                        align => $align[$_],
+                        width => $max_width[$_],
+                        )
+                    } 0 .. $#max_width
+            );
         }
 
         # separators or line after header

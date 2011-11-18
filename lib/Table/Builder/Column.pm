@@ -5,7 +5,7 @@ use Moose::Util::TypeConstraints;
 use MooseX::Types::Moose qw(Bool CodeRef HashRef);
 
 has name   => (is => 'ro', required => 1);
-has align  => (is => 'ro', isa => enum([qw(left right center justify)]), default => 'left');
+has align  => (is => 'ro', isa => enum([qw(left right center)]), default => 'left');
 has hidden => (is => 'ro', isa => Bool, default => 0);
 has label  => (is => 'ro', lazy => 1, default => sub { shift->name });
 
