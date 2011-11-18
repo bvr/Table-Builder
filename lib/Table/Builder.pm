@@ -8,29 +8,9 @@ use Carp;
 
 $Carp::Internal{ (__PACKAGE__) }++;
 
-=head1 SYNOPSIS
-
-    use Table::Builder;
-
-    my $table = Table::Builder->new(cols => ['Item', 'Value']);
-    $table->add('Apples',  20);
-    $table->add('Oranges', 25);
-    $table->add('Lemons',   5);
-    print $table->render_as('csv');
-
-=head1 DESCRIPTION
-
-What is it?
-
-Rationale ... why?
-
-Concept ... how it works?
-
-=attr cols
-
-Arrayref of columns specified.
-
-=cut
+# allow to override row base class in subclass
+sub _row_base_class         { 'Table::Builder::Row' }
+sub _summary_row_base_class { 'Table::Builder::SummaryRow' }
 
 has _cols => (
     is       => 'ro',
@@ -63,7 +43,7 @@ sub _build_row_class {
     my $self = shift;
 
     my $metaclass = Moose::Meta::Class->create_anon_class(
-        superclasses => ['Table::Builder::Row'],
+        superclasses => [ $self->_row_base_class ],
         cache        => 1,
     );
     for my $col ($self->cols) {
@@ -80,12 +60,6 @@ sub _build_row_class {
     return $metaclass;
 }
 
-=attr rows
-
-Array of rows in the table.
-
-=cut
-
 has _rows => (
     traits   => ['Array'],
     isa      => 'ArrayRef',
@@ -98,18 +72,6 @@ has _rows => (
 );
 
 __PACKAGE__->meta->make_immutable();
-
-=method add_row
-
-    $table->add_row('Apples', 10, 20);
-    $table->add_row({ Item => 'Apples', Amount => 10, Tax => 20 });
-
-Adds a new row into table.
-
-Two forms are supported, either just values for each column or data passed
-as named arguments.
-
-=cut
 
 sub add_row {
     my ($self, @items) = @_;
@@ -129,26 +91,11 @@ sub _normalize_row {
     return { map { $self->_cols->[$_]->name => $items[$_] } 0 .. $#items };
 }
 
-=method add_summary_row
-
-    $table->add_summary_row('Apples', sub { sum(@_) }, 20);
-    $table->add_summary_row({ Item => 'Apples', Amount => sub { sum(@_) }, Tax => 20 });
-
-Adds a new summary (calculated) row into table.
-
-Two forms are supported, either just values for each column or data passed
-as named arguments.
-
-The parameters supplied to the callback are values of given columns for
-all normal rows.
-
-=cut
-
 sub add_summary_row {
     my ($self, @items) = @_;
 
     my $metaclass = Moose::Meta::Class->create_anon_class(
-        superclasses => [ 'Table::Builder::SummaryRow' ]
+        superclasses => [ $self->_summary_row_base_class ]
     );
     $metaclass->add_method(parent => sub { $self });
 
@@ -172,15 +119,6 @@ sub add_summary_row {
     return $self;  # allow chaining
 }
 
-=method add_sep
-
-    $table->add_sep;
-    $table->add_sep(double => 1);
-
-Adds a separator row into table.
-
-=cut
-
 sub add_sep {
     my ($self, %opt) = @_;
 
@@ -188,27 +126,6 @@ sub add_sep {
 
     return $self;  # allow chaining
 }
-
-=method render_as
-
-    my $output = $table->render_as('ascii');
-    my $output = $table->render_as('ascii', %options);
-    $table->render_as('ascii', file => 'filename.txt');
-    $table->render_as('ascii', file => $open_filehandle);
-    $table->render_as('ascii', file => $open_filehandle, %options);
-
-Renders table into string or file using specified output formatting class.
-By default it looks for classes in B<Table::Builder::Output> namespace. It allows
-also fully specified formatter class.
-
-Without any options, the output is just returned as a string from the call.
-With B<file> option specified, the output is written into supplied filename or
-filehandle.
-
-All other options are passed directly to formatter class and may affect way
-the output is rendered.
-
-=cut
 
 sub render_as {
     my ($self, $format, %opt) = @_;
@@ -253,3 +170,79 @@ sub render_as {
 }
 
 1;
+
+=head1 SYNOPSIS
+
+    use Table::Builder;
+
+    my $table = Table::Builder->new(cols => ['Item', 'Value']);
+    $table->add('Apples',  20);
+    $table->add('Oranges', 25);
+    $table->add('Lemons',   5);
+    print $table->render_as('csv');
+
+=head1 DESCRIPTION
+
+What is it?
+
+Rationale ... why?
+
+Concept ... how it works?
+
+=attr cols
+
+Arrayref of columns specified.
+
+=attr rows
+
+Array of rows in the table.
+
+=method add_row
+
+    $table->add_row('Apples', 10, 20);
+    $table->add_row({ Item => 'Apples', Amount => 10, Tax => 20 });
+
+Adds a new row into table.
+
+Two forms are supported, either just values for each column or data passed
+as named arguments.
+
+=method add_sep
+
+    $table->add_sep;
+    $table->add_sep(double => 1);
+
+Adds a separator row into table.
+
+=method add_summary_row
+
+    $table->add_summary_row('Apples', sub { sum(@_) }, 20);
+    $table->add_summary_row({ Item => 'Apples', Amount => sub { sum(@_) }, Tax => 20 });
+
+Adds a new summary (calculated) row into table.
+
+Two forms are supported, either just values for each column or data passed
+as named arguments.
+
+The parameters supplied to the callback are values of given columns for
+all normal rows.
+
+=method render_as
+
+    my $output = $table->render_as('ascii');
+    my $output = $table->render_as('ascii', %options);
+    $table->render_as('ascii', file => 'filename.txt');
+    $table->render_as('ascii', file => $open_filehandle);
+    $table->render_as('ascii', file => $open_filehandle, %options);
+
+Renders table into string or file using specified output formatting class.
+By default it looks for classes in B<Table::Builder::Output> namespace. It allows
+also fully specified formatter class.
+
+Without any options, the output is just returned as a string from the call.
+With B<file> option specified, the output is written into supplied filename or
+filehandle.
+
+All other options are passed directly to formatter class and may affect way
+the output is rendered.
+
