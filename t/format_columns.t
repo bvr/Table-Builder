@@ -12,7 +12,7 @@ sub format_bytes {
         $nn /= 1024;
         substr($suff,0,1) = '';
     }
-    return sprintf "%.2f%s", $nn, substr($suff, $i, 1);
+    return sprintf "%.2f%s", $nn, substr($suff,0,1);
 }
 
 my $table = Table::Builder->new(cols => [
