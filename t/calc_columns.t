@@ -10,7 +10,11 @@ my $table = Table::Builder->new(cols => [
     'd9'   => { label => '-9', align => 'right' },
     'Diff' => {
         align    => 'right',
-        inferred => sub { my $self = shift; abs($self->d9 - $self->d8) },
+        lazy     => 1,
+        default  => sub { my $self = shift; abs($self->d9 - $self->d8) },
+        init_arg => undef,
+
+        # inferred => sub { my $self = shift; abs($self->d9 - $self->d8) },
     },
 ]);
 
