@@ -1,0 +1,94 @@
+# Table::Builder
+
+Build a table and output it in various formats
+
+# SYNOPSIS
+
+    use Table::Builder;
+
+    my $table = Table::Builder->new(cols => ['Item', 'Value']);
+    $table->add('Apples',  20);
+    $table->add('Oranges', 25);
+    $table->add('Lemons',   5);
+    print $table->render_as('csv');
+
+# DESCRIPTION
+
+What is it?
+
+Rationale ... why?
+
+Concept ... how it works?
+
+# ATTRIBUTES
+
+## cols
+
+Arrayref of columns specified. Each column is
+[Table::Builder::Column](http://search.cpan.org/perldoc?Table::Builder::Column) object with properties for the column.
+
+## rows
+
+Array of rows in the table.
+
+# METHODS
+
+## add_row
+
+    $table->add_row('Apples', 10, 20);
+    $table->add_row({ Item => 'Apples', Amount => 10, Tax => 20 });
+
+Adds a new row into table.
+
+Two forms are supported, either just values for each column or data passed
+as named arguments.
+
+## add_sep
+
+    $table->add_sep;
+    $table->add_sep(double => 1);
+
+Adds a separator row into table.
+
+## add_summary_row
+
+    $table->add_summary_row('Apples', sub { sum(@_) }, 20);
+    $table->add_summary_row({ Item => 'Apples', Amount => sub { sum(@_) }, Tax => 20 });
+
+Adds a new summary (calculated) row into table.
+
+Two forms are supported, either just values for each column or data passed
+as named arguments.
+
+The parameters supplied to the callback are values of given columns for
+all normal rows.
+
+## render_as
+
+    my $output = $table->render_as('ascii');
+    my $output = $table->render_as('ascii', %options);
+    $table->render_as('ascii', file => 'filename.txt');
+    $table->render_as('ascii', file => $open_filehandle);
+    $table->render_as('ascii', file => $open_filehandle, %options);
+
+Renders table into string or file using specified output formatting class.
+By default it looks for classes in __Table::Builder::Output__ namespace. It allows
+also fully specified formatter class.
+
+Without any options, the output is just returned as a string from the call.
+With __file__ option specified, the output is written into supplied filename or
+filehandle.
+
+All other options are passed directly to formatter class and may affect way
+the output is rendered.
+
+# AUTHOR
+
+Roman Hubacek <roman.hubacek@centrum.cz>
+
+# COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2011 by Roman Hubacek.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
