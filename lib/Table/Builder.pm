@@ -6,6 +6,7 @@ use Table::Builder::Types qw(ArrayRefOfCols);
 use Try::Tiny;
 use Carp;
 
+# do not report errors in this package with croak and carp
 $Carp::Internal{ (__PACKAGE__) }++;
 
 # allow to override row base class in subclass
@@ -19,7 +20,9 @@ has _cols => (
     coerce   => 1,
     required => 1,
     init_arg => 'cols',
-    handles  => {cols => 'elements'},
+    handles  => {
+        cols => 'elements'
+    },
 );
 
 sub visible_cols {
@@ -73,6 +76,14 @@ has _rows => (
 
 __PACKAGE__->meta->make_immutable();
 
+# support either hashref { col => value } or list of values
+sub _normalize_row {
+    my ($self, @items) = @_;
+
+    return $items[0] if @items == 1 && ref($items[0]) eq "HASH";
+    return { map { $self->_cols->[$_]->name => $items[$_] } 0 .. $#items };
+}
+
 sub add_row {
     my ($self, @items) = @_;
 
@@ -81,14 +92,6 @@ sub add_row {
     $self->_add_row($row);
 
     return $self;  # allow chaining
-}
-
-# support either hashref or list of items
-sub _normalize_row {
-    my ($self, @items) = @_;
-
-    return $items[0] if @items == 1 && ref($items[0]) eq "HASH";
-    return { map { $self->_cols->[$_]->name => $items[$_] } 0 .. $#items };
 }
 
 sub add_summary_row {
@@ -191,7 +194,8 @@ Concept ... how it works?
 
 =attr cols
 
-Arrayref of columns specified.
+Arrayref of columns specified. Each column is
+L<Table::Builder::Column> object with properties for the column.
 
 =attr rows
 

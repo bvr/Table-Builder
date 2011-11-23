@@ -1,5 +1,7 @@
 
 package Table::Builder::Types;
+# ABSTRACT: Moose types for Table::Builder
+
 use strict;
 
 use MooseX::Types -declare => [

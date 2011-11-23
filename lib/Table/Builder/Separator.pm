@@ -1,5 +1,7 @@
 
 package Table::Builder::Separator;
+# ABSTRACT: Separator in a table
+
 use Moose;
 use MooseX::Types::Moose qw(Bool);
 
