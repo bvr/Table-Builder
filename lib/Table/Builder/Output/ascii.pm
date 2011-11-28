@@ -81,6 +81,7 @@ sub _header_sep { 3 }
 
 sub _format {
     my ($self, %params) = @_;
+
     $params{align} ||= 'left';
     die "_format: 'text' and 'width' parameters have to be specified"
         unless defined $params{text} && defined $params{width};

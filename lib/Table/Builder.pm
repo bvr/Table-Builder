@@ -140,7 +140,6 @@ sub render_as {
         Class::MOP::load_class($out_class_name);
     }
     catch {
-
         croak $_ unless /^Can't locate /;
 
         # try to load as full namespace
@@ -188,9 +187,15 @@ sub render_as {
 
 What is it?
 
+The L<Table::Builder> is a module to help with creating tables of various data and output them in number of formats. Data are organized in rows, each having multiple columns.
+
 Rationale ... why?
 
+There are modules to help with this similar task (L<Text::Table>, L<ActiveState::Table>, ...), but most of them does not allow validation or calculation of data, also they typically just print textual table. I wanted to define a table with handy text output, but also allow output such data into wiki formats, HTML or Excel.
+
 Concept ... how it works?
+
+
 
 =attr cols
 
