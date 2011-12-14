@@ -195,6 +195,11 @@ There are modules to help with this similar task (L<Text::Table>, L<ActiveState:
 
 Concept ... how it works?
 
+During object initialization columns are setup and a class for rows is automatically created. Table::Builder maintains an array of rows, allow to work with it and render data using selected output class. There are many predefined ones, but it is quite easy to create another by subclassing one of existing output classes. See "How to create output class".
+
+Features
+
+Examples
 
 
 =attr cols
