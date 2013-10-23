@@ -105,6 +105,14 @@ sub add_summary_row {
 
     my $data = $self->_normalize_row(@items);
 
+    # if data is not supplied and column is inferred, add the method
+    for my $col (grep { ! defined $data->{$_->name} } $self->cols) {
+        if($col->has_inferred) {
+            $metaclass->add_method($col->name => sub { $col->inferred->(@_) });
+        }
+    }
+
+    # add methods for all supplied columns
     for my $key (keys %$data) {
         my $item = $data->{$key};
         my $meth = ref $item ne 'CODE'
