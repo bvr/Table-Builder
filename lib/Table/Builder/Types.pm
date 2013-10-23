@@ -28,6 +28,7 @@ coerce ArrayRefOfCols, from ArrayRef, via {
     my @input = @$_;
     my @cols  = ();
 
+    # TODO: should allow Table::Builder::Column objects among items
     while(my $col_name = shift @input) {
         my %params = ();
         if(ref $input[0] eq 'HASH') {

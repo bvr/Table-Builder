@@ -69,8 +69,9 @@ has _rows => (
     init_arg => 'rows',
     default  => sub { [] },
     handles  => {
-        rows     => 'elements',
-        _add_row => 'push',
+        rows      => 'elements',
+        sort_rows => 'sort_in_place',
+        _add_row  => 'push',
     },
 );
 
@@ -163,7 +164,7 @@ sub render_as {
         return $renderer->render_string($self);
     }
 
-    croak "The output file was not specified for format \"$format\""
+    croak "The output file must be specified if render_as is used in void context"
         unless defined $output_file;
 
     # output into file(handle)
@@ -178,9 +179,9 @@ sub render_as {
     use Table::Builder;
 
     my $table = Table::Builder->new(cols => ['Item', 'Value']);
-    $table->add('Apples',  20);
-    $table->add('Oranges', 25);
-    $table->add('Lemons',   5);
+    $table->add_row('Apples',  20);
+    $table->add_row('Oranges', 25);
+    $table->add_row('Lemons',   5);
     print $table->render_as('csv');
 
 =head1 DESCRIPTION
@@ -199,13 +200,15 @@ During object initialization columns are setup and a class for rows is automatic
 
 Features
 
-Examples
+=head1 MORE COMPLEX EXAMPLES
+
+
 
 
 =attr cols
 
-Arrayref of columns specified. Each column is
-L<Table::Builder::Column> object with properties for the column.
+Columns definition. Arrayref of L<Table::Builder::Column> objects with
+properties for the column. If the column
 
 =attr rows
 
