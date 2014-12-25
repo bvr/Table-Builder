@@ -5,6 +5,7 @@ use Moose;
 use Table::Builder::Types qw(ArrayRefOfCols);
 use Try::Tiny;
 use Carp;
+use Class::Load qw(load_class);
 
 # do not report errors in this package with croak and carp
 $Carp::Internal{ (__PACKAGE__) }++;
@@ -146,7 +147,7 @@ sub render_as {
     my $out_class_name;
     try {
         $out_class_name = 'Table::Builder::Output::' . $format;
-        Class::MOP::load_class($out_class_name);
+        load_class($out_class_name);
     }
     catch {
         croak $_ unless /^Can't locate /;
@@ -154,7 +155,7 @@ sub render_as {
         # try to load as full namespace
         try {
             $out_class_name = $format;
-            Class::MOP::load_class($out_class_name);
+            load_class($out_class_name);
         }
         catch {
             croak $_ unless /^Can't locate /;               # error in module
